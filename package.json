@@ -1,0 +1,19 @@
+{
+  "name": "cube_project",
+  "version": "1.0.0",
+  "description": "mqtt whit notejs for cube project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mqtt",
+    "cube",
+    "esp32"
+  ],
+  "author": "Eduardo Hernandez",
+  "license": "ISC",
+  "dependencies": {
+    "mqtt": "^5.3.0"
+  }
+}
