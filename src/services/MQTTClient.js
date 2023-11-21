@@ -2,32 +2,49 @@ import * as MQTT_L from 'mqtt';
 
 class MQTTClient {
     constructor({ host, port, clientId, username, password, mountpoint = '/mqtt' }) {
+        // console.log('Received MQTT config:', { host, port, clientId, username, password, mountpoint });
+        this.host = host;
+        this.port = port;
+        this.clientId = clientId;
+        this.username = username;
+        this.password = password;
+        this.mountpoint = mountpoint;
 
         if (!host || !port) {
             throw new Error('Invalid MQTT configuration: host and port are required.');
         }
 
-        const mqttUrl = `ws://${host}:${port}${mountpoint}`;
+        this.connectToBroker();
+    }
 
-        this.client = MQTT_L.connect(mqttUrl, {
-            clientId,
-            username,
-            password,
-        });
-
-        this.client.on('connect', () => {
-            console.log('Connected to MQTT broker: ' + host);
-            this.client.subscribe('/test/topic', (err) => {
-                if (!err) {
-                    console.log('Subscribed to /test/topic');
-                }
+    connectToBroker() {
+        if (!this.isConnected()) {
+            const mqttUrl = `ws://${this.host}:${this.port}${this.mountpoint}`;
+    
+            this.client = MQTT_L.connect(mqttUrl, {
+                clientId: this.clientId,
+                username: this.username,
+                password: this.password,
             });
-            this.client.publish('/test/topic', `Client ${clientId} has been connected`);
-        });
+    
+            this.client.on('connect', () => {
+                console.log(`Connected to MQTT broker: ${this.host}`);
+                this.client.subscribe('/test/topic', (err) => {
+                    if (!err) {
+                        console.log('Subscribed to /test/topic');
+                    }
+                });
+                this.client.publish('/test/topic', `Client ${this.clientId} has been connected`);
+            });
+    
+            this.client.on('error', (err) => {
+                console.error('MQTT connection error', err.message);
+            });
+        }
+    }
 
-        this.client.on('error', (err) => {
-            console.error('MQTT connection error', err.message);
-        });
+    isConnected() {
+        return this.client && this.client.connected;
     }
 
     getClient() {
