@@ -1,35 +1,46 @@
-const mqtt = require('mqtt');
-const config = require("./config_private.json");
+import express from 'express'
+import * as mqtt from 'mqtt'
 
+const app = express()
 const { host, port, clientID, username, password } = config.connection;
-const connectURL = `ws://${host}:${port}/mqtt`;
 
-console.log(connectURL);
+const mqttClient = mqtt.connect(`ws://${host}:${port}/mqtt`)
 
-const client = mqtt.connect(connectURL, {
-    clientId: clientID,
-    clean: true,
-    connectTimeout: 4000,
-    username: username,
-    password: password,
-    reconnectPeriod: 1000,
-});
+// Connect to the MQTT broker
+mqttClient.on('connect', function() {
+    console.log('Connected to MQTT broker')
+})
 
-const topic = '/nodejs/mqtt';
+app.use(function (req, res, next) {
+    // Publish messages
+    req.mqttPublish = function (topic, message) {
+        mqttClient.publish(topic, message)
+    }
 
-client.on('connect', () => {
-    console.log('Connected');
-
-    client.subscribe([topic], () => {
-        console.log(`Subscribe to topic '${topic}'`);
-        client.publish(topic, 'nodejs mqtt test', { qos: 0, retain: false }, (error => {
-            if (error) {
-                console.error(error);
+    // Suscribe to topic
+    req.mqttSubscribe = function (topic, callback) {
+        mqttClient.subscribe(topic)
+        mqttClient.on('message', function (t, m) {
+            if (t === topic) {
+                callback(m.toString())
             }
-        }));
-    });
-});
+        })
+    }
+    next()
+})
 
-client.on('message', (topic, payload) => {
-    console.log('Received Message:', topic, payload.toString());
-});
+app.get('/', function (req, res) {
+    // Publish
+    req.mqttPublish('test', 'Hello MQTT!')
+
+    // Subscribe
+    req.mqttSubscribe('test', function (message) {
+        console.log('Received message: ' + message)
+    })
+
+    res.send('MQTT is working!')
+})
+
+app.listen(3000, function(){
+    console.log('Server is running on port 3000')
+})
