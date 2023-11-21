@@ -1,9 +1,9 @@
-import expressRoutes from './expressRoutes';
-import mqttRoutes from './mqttRoutes';
+import expressRoutes from './expressRoutes.js';
+import mqttRoutes from './mqttRoutes.js';
 
 const initRoutes = (app) => {
-    app.use('/', expressRoutes);
-    app.use('/mqtt', mqttRoutes);
+    app.use(expressRoutes);
+    app.use(mqttRoutes);
 };
 
 export default initRoutes;

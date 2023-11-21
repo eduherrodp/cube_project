@@ -1,7 +1,7 @@
+// app.js
 import express from 'express';
 import fs from 'fs/promises';
-import initRoutes from './routes';
-import mqttClient from './services/MQTTClient';
+import initRoutes from './routes/index.js';
 
 const app = express();
 
@@ -23,13 +23,15 @@ async function loadConfig() {
 
 async function startServer() {
     const config = await loadConfig();
-    const { server } = config;
 
-    // Inicia el servidor Express
+    // Middleware para analizar el cuerpo de las solicitudes como JSON
+    app.use(express.json());
+
+    // Configurar rutas para la aplicación Express
     initRoutes(app);
 
-    const serverInstance = app.listen(server.port, () => {
-        console.log(`Server is running on port ${server.port}`);
+    const serverInstance = app.listen(config.server.port, function () {
+        console.log(`Server is running on port ${config.server.port}`);
     });
 
     // Manejar la terminación del servidor
@@ -42,4 +44,4 @@ async function startServer() {
     });
 }
 
-startServer(config);
+startServer();

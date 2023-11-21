@@ -1,9 +1,8 @@
 import express from 'express';
-import * as expressController from '../controllers/expressController';
+import expressController from '../controllers/expressController.js';
 
 const router = express.Router();
 
-router.get('/', expressController.handleRoot);
-router.post('/send-message', expressController.handleSendMessage);
+router.get('/', expressController.getHello);
 
 export default router;
