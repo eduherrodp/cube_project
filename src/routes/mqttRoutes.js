@@ -1,12 +1,19 @@
+// mqttRoutes.js
 import express from 'express';
 import MQTTClient from '../services/MQTTClient.js';
+import { loadConfig } from '../app.js';
 
 const router = express.Router();
 
 router.post('/send-message', async (req, res) => {
     try {
-        const mqttConfig = await loadConfig(); // Load MQTT config here
-        const mqttClient = new MQTTClient(mqttConfig);
+        const mqttConfig = await loadConfig();
+        // console.log(mqttConfig);
+
+        const { host, port, clientId, username, password, mountpoint } = mqttConfig.mqtt;
+
+        const mqttClient = new MQTTClient({ host, port, clientId, username, password, mountpoint });
+        console.log(mqttClient);
 
         const { message } = req.body;
 

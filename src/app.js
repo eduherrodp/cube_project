@@ -21,6 +21,8 @@ async function loadConfig() {
     }
 }
 
+export { loadConfig };
+
 async function startServer() {
     const config = await loadConfig();
 
