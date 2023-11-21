@@ -27,7 +27,6 @@ class MQTTClient {
 
         // Para subscribirse en automático, la lógica de subscripción se mueve al constructor
         this.connectToBroker();
-        this.subscribeToTopic();
     }
     
     connectToBroker() {
