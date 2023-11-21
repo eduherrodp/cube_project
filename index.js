@@ -6,10 +6,16 @@ const app = express();
 async function loadConfig() {
     try {
         const configContent = await fs.readFile('./config_private.json', 'utf-8');
-        return JSON.parse(configContent);
+        const config = JSON.parse(configContent);
+
+        if (!config || !config.mqtt || !config.server) {
+            throw new Error('Invalid configuration file.');
+        }
+
+        return config;
     } catch (error) {
         console.error('Error loading config: ', error.message);
-        process.exit(1);
+        throw error;
     }
 }
 
@@ -37,6 +43,10 @@ async function startServer() {
         // Publicar un mensaje al conectar
         mqttClient.publish('/test/topic', `Client ${mqtt.clientId} has been connected`);
     });
+
+    mqttClient.on('error', (err) => {
+        console.error('MQTT connection error', err.message);
+    })
 
     // Middleware para analizar el cuerpo de las solicitudes como JSON
     app.use(express.json());
