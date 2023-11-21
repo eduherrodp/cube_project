@@ -9,6 +9,10 @@ export const handleMQTTMessage = (req, res) => {
     const { message } = req.body;
     const client = mqttClient.getClient();
 
-    client.publish('/test/topic', message);
-    res.json({ status: 'Message sent to MQTT broker', message });
+    client.publish('/test/topic', message, (err) => {
+        if (err) {
+            console.error('Error publishing message to /test/topic: ', err.message);
+            res.status(500).json({ status: 'Error publishing message', error: err.message });
+        } else res.json({ status: 'Message sent to MQTT broker', message });
+    });
 };

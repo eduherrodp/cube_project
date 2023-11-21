@@ -11,7 +11,8 @@ class MQTTClient {
         this.client.on('connect', () => {
             console.log('Connected to MQTT broker: ' + mqttConfig.host);
             this.client.subscribe('/test/topic', (err) => {
-                if (!err) console.log('Subscribed to /test/topic');
+                if (err) console.error('Error subscribing to /test/topic: ', err.message);
+                else console.log('Subscribed to /test/topic');
             });
             this.client.publish('/test/topic', `Client ${mqttConfig.clientId} has been connected`);
         });

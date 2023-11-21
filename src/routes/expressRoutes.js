@@ -1,8 +1,9 @@
-export const handleRoot = (req, res) => {
-    res.send('Hello from Express!');
-};
+import express from 'express';
+import * as expressController from '../controllers/expressController';
 
-export const handleSendMessage = (req, res) => {
-    const { message } = req.body;
-    res.json({ status: 'Message received by Express', message });
-};
+const router = express.Router();
+
+router.get('/', expressController.handleRoot);
+router.post('/send-message', expressController.handleSendMessage);
+
+export default router;
