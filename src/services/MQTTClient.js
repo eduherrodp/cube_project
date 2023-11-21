@@ -1,6 +1,17 @@
 import * as MQTT_L from 'mqtt';
 
 class MQTTClient {
+
+    // Propiedad estática para almacenar la instancia única
+    static instance = null;
+
+    // Método estático para obtener la instancia única
+    static getInstance(config) {
+        if (!MQTTClient.instance) {
+            MQTTClient.instance = new MQTTClient(config);
+        } return MQTTClient.instance;
+    }
+
     constructor({ host, port, clientId, username, password, mountpoint = '/mqtt' }) {
         // console.log('Received MQTT config:', { host, port, clientId, username, password, mountpoint });
         this.host = host;
@@ -14,9 +25,11 @@ class MQTTClient {
             throw new Error('Invalid MQTT configuration: host and port are required.');
         }
 
+        // Para subscribirse en automático, la lógica de subscripción se mueve al constructor
         this.connectToBroker();
+        this.subscribeToTopic();
     }
-
+    
     connectToBroker() {
         if (!this.isConnected()) {
             const mqttUrl = `ws://${this.host}:${this.port}${this.mountpoint}`;

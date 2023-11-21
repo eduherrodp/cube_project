@@ -7,10 +7,9 @@ const router = express.Router();
 router.post('/send-message', async (req, res) => {
     try {
         const mqttConfig = await loadConfig();
-
         const { host, port, clientId, username, password, mountpoint } = mqttConfig.mqtt;
-
-        const mqttClient = new MQTTClient({ host, port, clientId, username, password, mountpoint });
+        // Obtener la instancia única de MQTTClient
+        const mqttClient = MQTTClient.getInstance({ host, port, clientId, username, password, mountpoint });
 
         const { message } = req.body;
 
