@@ -1,77 +1,67 @@
 import express from 'express';
-import * as mqtt from 'mqtt';
-import bodyParser from 'body-parser'; // Importamos bodyParser para manejar el cuerpo de la solicitud POST
+import * as MQTT_L from 'mqtt';
 import fs from 'fs/promises';
 
 const app = express();
-
-// Configuramos bodyParser para manejar solicitudes con cuerpo JSON
-app.use(bodyParser.json());
-
-const configPath = './config_private.json';
-
 async function loadConfig() {
     try {
-        const configContent = await fs.readFile(configPath, 'utf-8');
+        const configContent = await fs.readFile('./config_private.json', 'utf-8');
         return JSON.parse(configContent);
     } catch (error) {
-        console.error('Error loading config:', error);
+        console.error('Error loading config: ', error.message);
         process.exit(1);
     }
 }
 
 async function startServer() {
     const config = await loadConfig();
-    const { host, port, clientID, username, password } = config.connection;
-
-    const mqttClient = mqtt.connect(`ws://${host}:${port}/mqtt`, {
-        clientId: clientID,
-        username: username,
-        password: password,
+    const { mqtt, server } = config;
+    
+    const mqttClient = MQTT_L.connect(`ws://${mqtt.host}:${mqtt.port}/mqtt`, {
+        clientId: mqtt.clientId,
+        username: mqtt.username,
+        password: mqtt.password,
     });
 
-    // Connect to the MQTT broker
-    mqttClient.on('connect', function () {
-        console.log('Connected to MQTT broker');
+    // Manejar eventos del cliente MQTT
+    mqttClient.on('connect', () => {
+        console.log('Connected to MQTT broker: ' + mqtt.host);
+
+        // Subscribirse al topic
+        mqttClient.subscribe('/test/topic', (err) => {
+            if(!err) {
+                console.log('Subscribed to /test/topic');
+            }
+        });
+
+        // Publicar un mensaje al conectar
+        mqttClient.publish('/test/topic', `Client ${mqtt.clientId} has been connected`);
     });
 
-    app.use(function (req, res, next) {
-        // Publish messages
-        req.mqttPublish = function (topic, message) {
-            mqttClient.publish(topic, message);
-        };
+    // Middleware para analizar el cuerpo de las solicitudes como JSON
+    app.use(express.json());
 
-        // Subscribe to topic
-        req.mqttSubscribe = function (topic, callback) {
-            mqttClient.subscribe(topic);
-            mqttClient.on('message', function (t, m) {
-                if (t === topic) {
-                    callback(m.toString());
-                }
-            });
-        };
-        next();
+    // Configurar rutas para la aplicación Express
+    app.get('/', (req, res) => {
+        res.send('Hello from Express!');
     });
 
-    // Modificamos la ruta para aceptar solicitudes POST con un cuerpo JSON
-    app.post('/', function (req, res) {
-        // Obtener la cadena de texto del cuerpo de la solicitud
-        const textMessage = req.body.message || 'Default Message';
+    app.post('/send-message', (req, res) => {
+        const { message } =  req.body;
 
-        // Publicar la cadena de texto en el tema MQTT 'test'
-        req.mqttPublish('test', textMessage);
-
-        res.json({ message: 'MQTT message sent', textMessage });
+        // Publicar el mensaje en el topic MQTT
+        mqttClient.publish('/test/topic', message);
+        res.json({ status: 'Message sent to MQTT broker', message});
     });
 
-    const server = app.listen(3000, function () {
-        console.log('Server is running on port 3000');
+    const serverInstance = app.listen(server.port, function() {
+        console.log(`Server is running on port ${server.port}`);
     });
 
     // Manejar la terminación del servidor
-    process.on('SIGINT', function () {
+    process.on('SIGINT', () => {
         console.log('Server shutting down...');
-        server.close(function () {
+        serverInstance.close(() => {
             console.log('Server closed.');
             process.exit(0);
         });
