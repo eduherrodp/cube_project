@@ -3,6 +3,7 @@ import * as MQTT_L from 'mqtt';
 import fs from 'fs/promises';
 
 const app = express();
+const config = await loadConfig();
 async function loadConfig() {
     try {
         const configContent = await fs.readFile('./config_private.json', 'utf-8');
@@ -19,8 +20,7 @@ async function loadConfig() {
     }
 }
 
-async function startServer() {
-    const config = await loadConfig();
+async function startServer(config) {
     const { mqtt, server } = config;
     
     const mqttClient = MQTT_L.connect(`ws://${mqtt.host}:${mqtt.port}/mqtt`, {
@@ -78,4 +78,4 @@ async function startServer() {
     });
 }
 
-startServer();
+startServer(config);
