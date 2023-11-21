@@ -18,7 +18,6 @@ router.post('/send-message', async (req, res) => {
         res.json({ status: 'Message sent to MQTT broker', message });
     } catch (error) {
         console.error('Error in MQTT route: ', error.message);
-        // res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
