@@ -203,7 +203,7 @@ class LEDController {
         const formattedBinaryStringFinal = this.generateFormattedBinaryString();
         const message = { message: formattedBinaryStringFinal };
 
-        fetch('http://app.smarttransit.online:3000/send-message', {
+        fetch('https://api.smarttransit.online/send-message', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
