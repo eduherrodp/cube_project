@@ -1,60 +1,95 @@
-import express from 'express';
-import fs from 'fs/promises';
-import initRoutes from './routes/index.js';
-import cors from 'cors';
+/**
+ * MQTTClient.js
+ * This file defines the MQTTClient class for handling MQTT connections.
+ * @module MQTTClient
+ */
 
-const app = express();
+import * as MQTT_L from 'mqtt';
 
-async function loadConfig() {
-    try {
-        const configContent = await fs.readFile('./config_private.json', 'utf-8');
-        const config = JSON.parse(configContent);
+class MQTTClient {
+    static instance = null;
 
-        if (!config || !config.mqtt || !config.server) {
-            throw new Error('Invalid configuration file.');
+    /**
+     * Gets the instance of the MQTTClient class.
+     * @static
+     * @function
+     * @param {Object} config - MQTT configuration parameters.
+     * @returns {MQTTClient} - Instance of the MQTTClient class.
+     */
+    static getInstance(config) {
+        if (!MQTTClient.instance) {
+            MQTTClient.instance = new MQTTClient(config);
+        }
+        return MQTTClient.instance;
+    }
+
+    /**
+     * Constructor for the MQTTClient class.
+     * @constructor
+     * @param {Object} config - MQTT configuration parameters.
+     */
+    constructor({ host, port, clientId, username, password, mountpoint = '/mqtt' }) {
+        this.host = host;
+        this.port = port;
+        this.clientId = clientId;
+        this.username = username;
+        this.password = password;
+        this.mountpoint = mountpoint;
+
+        if (!host || !port) {
+            throw new Error('Invalid MQTT configuration: host and port are required.');
         }
 
-        return config;
-    } catch (error) {
-        console.error('Error loading config: ', error.message);
-        throw error;
+        this.connectToBroker();
+    }
+
+    /**
+     * Connects to the MQTT broker.
+     * @function
+     */
+    connectToBroker() {
+        if (!this.isConnected()) {
+            const mqttUrl = `ws://${this.host}:${this.port}${this.mountpoint}`;
+
+            this.client = MQTT_L.connect(mqttUrl, {
+                clientId: this.clientId,
+                username: this.username,
+                password: this.password,
+            });
+
+            this.client.on('connect', () => {
+                console.log(`Connected to MQTT broker: ${this.host}`);
+                this.client.subscribe('/test/topic', (err) => {
+                    if (!err) {
+                        console.log('Subscribed to /test/topic');
+                    }
+                });
+                this.client.publish('/test/topic', `Client ${this.clientId} has been connected`);
+            });
+
+            this.client.on('error', (err) => {
+                console.error('MQTT connection error', err.message);
+            });
+        }
+    }
+
+    /**
+     * Checks if the client is connected to the MQTT broker.
+     * @function
+     * @returns {boolean} - True if connected, false otherwise.
+     */
+    isConnected() {
+        return this.client && this.client.connected;
+    }
+
+    /**
+     * Gets the MQTT client instance.
+     * @function
+     * @returns {Object} - MQTT client instance.
+     */
+    getClient() {
+        return this.client;
     }
 }
 
-export { loadConfig };
-
-async function startServer() {
-    const config = await loadConfig();
-
-    // Middleware para analizar el cuerpo de las solicitudes como JSON
-    app.use(express.json());
-
-    // Middleware CORS para permitir solicitudes desde orígenes específicos
-    app.use(cors({
-        origin: ['https://app.smarttransit.online', 'https://api.smarttransit.online'],
-        methods: 'POST',
-        credentials: true,
-        optionsSuccessStatus: 204,
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        preflightContinue: false,
-        maxAge: 3600,
-    }));
-
-    // Configurar rutas para la aplicación Express
-    initRoutes(app);
-
-    const serverInstance = app.listen(config.server.port, function () {
-        console.log(`Server is running on port ${config.server.port}`);
-    });
-
-    // Manejar la terminación del servidor
-    process.on('SIGINT', () => {
-        console.log('Server shutting down...');
-        serverInstance.close(() => {
-            console.log('Server closed.');
-            process.exit(0);
-        });
-    });
-}
-
-startServer();
+export default MQTTClient;
