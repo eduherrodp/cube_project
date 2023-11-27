@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs/promises';
 import initRoutes from './routes/index.js';
+import cors from 'cors';
 
 const app = express();
 
@@ -27,6 +28,17 @@ async function startServer() {
 
     // Middleware para analizar el cuerpo de las solicitudes como JSON
     app.use(express.json());
+
+    // Middleware CORS para permitir solicitudes desde orígenes específicos
+    app.use(cors({
+        origin: ['http://http://app.smarttransit.online'],
+        methods: 'POST',
+        credentials: true,
+        optionsSuccessStatus: 204,
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        preflightContinue: false,
+        maxAge: 3600,
+    }));
 
     // Configurar rutas para la aplicación Express
     initRoutes(app);
