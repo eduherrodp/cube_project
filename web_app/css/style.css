@@ -1,0 +1,216 @@
+/* ---------- Global Variables ---------- */
+
+:root {
+    /* Define global CSS variables for consistent styling */
+    --background-color: #f0f0f0; /* Page background color */
+    --container-background: #fff; /* Main container background color */
+    --box-shadow-color: rgba(0, 0, 0, 0.1); /* Shadow color for various elements */
+    --led-box-shadow: 0px 0px 3px black; /* Shadow for LED elements */
+    --green-gradient: -webkit-linear-gradient(top, #13fB04 0%, #58e343 50%, #ADED99 100%);
+}
+
+/* ---------- Body Styles ---------- */
+
+body {
+    /* Body styling for the entire page */
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: var(--background-color); /* Use global variable for background color */
+}
+
+/* ---------- Main Container Styles ---------- */
+
+#container {
+    /* Styling for the main container */
+    text-align: center;
+    background-color: var(--container-background); /* Use global variable for background color */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px var(--box-shadow-color); /* Use global variable for shadow color */
+    width: 50%;
+    overflow: hidden;
+    /* Prevent layers from extending beyond the container */
+}
+
+/* ---------- Layers Container Styles ---------- */
+
+#layers {
+    /* Styling for the layers container */
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    /* Allow layers to wrap on smaller devices */
+    justify-content: space-around;
+}
+
+/* ---------- Layer Styles ---------- */
+
+.layer {
+    /* Styling for each layer */
+    width: 10vw;
+    /* Fixed width for each layer on smaller devices */
+    height: 10vw;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 7px;
+    text-align: center;
+    /* Center text within the layer */
+    margin: auto;
+}
+
+.layer .led {
+    /* Styling for each LED within a layer */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    box-shadow: 0px 0px 3px var(--led-box-shadow);
+    background-color: var(--box-shadow-color);
+    cursor: pointer;
+}
+
+.layer-title {
+    /* Styling for layer title */
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.green {
+    /* Styling for the "green" class */
+    background-image: var(--green-gradient);
+}
+
+/* ---------- Controls Section Styles ---------- */
+
+#controles {
+    /* Styling for the controls section */
+    margin-top: 10vh;
+}
+
+button {
+    /* Styling for buttons */
+    padding: 10px;
+    font-size: 16px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+/* ---------- Media Query for Small Devices ---------- */
+
+@media (max-width: 600px) {
+    /* Responsive styles for smaller devices */
+
+    #controles {
+        margin-top: 5px;
+    }
+
+    #layers {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .layer {
+        width: calc(50% - 10px);
+        /* Full width on smaller devices */
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    .layer .led {
+        width: 15vw;
+        height: 15vw;
+        max-width: 5vw;
+        max-height: 5vw;
+        gap: 1px;
+    }
+
+    button {
+        padding: 5px;
+        font-size: 14px;
+        margin: 0 5px;
+    }
+}
+
+/* ---------- Button Animation Styles ---------- */
+
+.frame {
+    /* Styling for a frame */
+    width: 90%;
+    margin: 40px auto;
+    text-align: center;
+}
+
+button {
+    /* Default styling for buttons */
+    margin: 20px;
+}
+
+.custom-btn, .button-a {
+    /* Shared styling for custom buttons */
+    width: 130px;
+    height: 40px;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px 25px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 500;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    position: relative;
+    display: inline-block;
+    box-shadow: inset 2px 2px 2px 0px rgba(255, 255, 255, .5),
+        7px 7px 20px 0px rgba(0, 0, 0, .1),
+        4px 4px 5px 0px rgba(0, 0, 0, .1);
+    outline: none;
+}
+
+.button-a {
+    /* Additional styling for button-a */
+    background: rgb(22, 154, 44);
+    border: none;
+}
+
+.button-a:after {
+    /* Pseudo-element for additional styling */
+    position: absolute;
+    content: "";
+    width: 100%;
+    height: 0;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: 5px;
+    background-color: #bdf9b8;
+    background-image: linear-gradient(315deg, #eaf818 0%, #f6fc9c 74%);
+    box-shadow: inset 2px 2px 2px 0px rgba(255, 255, 255, .5),
+        7px 7px 20px 0px rgba(0, 0, 0, .1),
+        4px 4px 5px 0px rgba(0, 0, 0, .1);
+    transition: all 0.1s ease;
+}
+
+.button-a:hover {
+    /* Hover state for button-a */
+    color: #000;
+}
+
+.button-a:hover:after {
+    /* Hover state for pseudo-element */
+    top: auto;
+    bottom: 0;
+    height: 100%;
+}
+
+.button-a:active {
+    /* Active state for button-a */
+    top: 2px;
+}
