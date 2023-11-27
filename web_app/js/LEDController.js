@@ -208,7 +208,7 @@ class LEDController {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(message);
+            body: JSON.stringify(message)
         }).then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
