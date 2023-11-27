@@ -31,7 +31,7 @@ async function startServer() {
 
     // Middleware CORS para permitir solicitudes desde orígenes específicos
     app.use(cors({
-        origin: ['http://http://app.smarttransit.online'],
+        origin: ['https://api.smarttransit.online'],
         methods: 'POST',
         credentials: true,
         optionsSuccessStatus: 204,
