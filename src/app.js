@@ -1,95 +1,75 @@
 /**
- * MQTTClient.js
- * This file defines the MQTTClient class for handling MQTT connections.
- * @module MQTTClient
+ * app.js
+ * This file initializes the Express app, loads configuration, and starts the server.
+ * @module app
  */
 
-import * as MQTT_L from 'mqtt';
+import express from 'express';
+import fs from 'fs/promises';
+import initRoutes from './routes/index.js';
+import cors from 'cors';
 
-class MQTTClient {
-    static instance = null;
+const app = express();
 
-    /**
-     * Gets the instance of the MQTTClient class.
-     * @static
-     * @function
-     * @param {Object} config - MQTT configuration parameters.
-     * @returns {MQTTClient} - Instance of the MQTTClient class.
-     */
-    static getInstance(config) {
-        if (!MQTTClient.instance) {
-            MQTTClient.instance = new MQTTClient(config);
-        }
-        return MQTTClient.instance;
-    }
+/**
+ * Loads configuration from the 'config_private.json' file.
+ * @async
+ * @function
+ * @throws {Error} - If the configuration is invalid or loading fails.
+ * @returns {Object} - Loaded configuration.
+ */
+async function loadConfig() {
+    try {
+        const configContent = await fs.readFile('./config_private.json', 'utf-8');
+        const config = JSON.parse(configContent);
 
-    /**
-     * Constructor for the MQTTClient class.
-     * @constructor
-     * @param {Object} config - MQTT configuration parameters.
-     */
-    constructor({ host, port, clientId, username, password, mountpoint = '/mqtt' }) {
-        this.host = host;
-        this.port = port;
-        this.clientId = clientId;
-        this.username = username;
-        this.password = password;
-        this.mountpoint = mountpoint;
-
-        if (!host || !port) {
-            throw new Error('Invalid MQTT configuration: host and port are required.');
+        if (!config || !config.mqtt || !config.server) {
+            throw new Error('Invalid configuration file.');
         }
 
-        this.connectToBroker();
-    }
-
-    /**
-     * Connects to the MQTT broker.
-     * @function
-     */
-    connectToBroker() {
-        if (!this.isConnected()) {
-            const mqttUrl = `ws://${this.host}:${this.port}${this.mountpoint}`;
-
-            this.client = MQTT_L.connect(mqttUrl, {
-                clientId: this.clientId,
-                username: this.username,
-                password: this.password,
-            });
-
-            this.client.on('connect', () => {
-                console.log(`Connected to MQTT broker: ${this.host}`);
-                this.client.subscribe('/test/topic', (err) => {
-                    if (!err) {
-                        console.log('Subscribed to /test/topic');
-                    }
-                });
-                this.client.publish('/test/topic', `Client ${this.clientId} has been connected`);
-            });
-
-            this.client.on('error', (err) => {
-                console.error('MQTT connection error', err.message);
-            });
-        }
-    }
-
-    /**
-     * Checks if the client is connected to the MQTT broker.
-     * @function
-     * @returns {boolean} - True if connected, false otherwise.
-     */
-    isConnected() {
-        return this.client && this.client.connected;
-    }
-
-    /**
-     * Gets the MQTT client instance.
-     * @function
-     * @returns {Object} - MQTT client instance.
-     */
-    getClient() {
-        return this.client;
+        return config;
+    } catch (error) {
+        console.error('Error loading config: ', error.message);
+        throw error;
     }
 }
 
-export default MQTTClient;
+export { loadConfig };
+
+/**
+ * Starts the Express server with configured middleware and routes.
+ * @async
+ * @function
+ */
+async function startServer() {
+    const config = await loadConfig();
+
+    app.use(express.json());
+    app.use(
+        cors({
+            origin: ['https://app.smarttransit.online', 'https://api.smarttransit.online'],
+            methods: 'POST',
+            credentials: true,
+            optionsSuccessStatus: 204,
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            preflightContinue: false,
+            maxAge: 3600,
+        })
+    );
+
+    initRoutes(app);
+
+    const serverInstance = app.listen(config.server.port, function () {
+        console.log(`Server is running on port ${config.server.port}`);
+    });
+
+    process.on('SIGINT', () => {
+        console.log('Server shutting down...');
+        serverInstance.close(() => {
+            console.log('Server closed.');
+            process.exit(0);
+        });
+    });
+}
+
+startServer();

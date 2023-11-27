@@ -12,7 +12,7 @@ const expressController = {
      * @param {Object} res - Express response object.
      */
     getHello: (req, res) => {
-        res.send('Hello from Express!');
+        res.send('Hello from Express!\n\nsmarttransit.online');
     },
 };
 
