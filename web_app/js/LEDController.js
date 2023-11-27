@@ -37,6 +37,9 @@ class LEDController {
 
             const resetButton = document.getElementById('reset_button');
             resetButton.addEventListener('click', this.resetLEDs.bind(this));
+
+            const sendButton = document.getElementById('send_button');
+            sendButton.addEventListener('click', this.sendConfig.bind(this));
         });
     }
 
@@ -191,6 +194,28 @@ class LEDController {
                 if (element.classList.contains('green')) element.click();
             }
         }
+    }
+
+    /**
+     * Send the configuration to http://app.smarttransit.online:3000/send-message
+     */
+    sendConfig() {
+        const formattedBinaryStringFinal = this.generateFormattedBinaryString();
+        const message = { message: formattedBinaryStringFinal };
+
+        fetch('http://app.smarttransit.online:3000/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(message);
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            } console.log('Config sent successfully');
+        }).catch(error => {
+            console.error('There was a problem whit the fetch operation:', error);
+        });
     }
 }
 
